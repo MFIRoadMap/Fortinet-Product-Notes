@@ -1,4 +1,4 @@
-# Fortinet-Product-Notes
+# Fortinet Product Notes
 
 *  [Fortigate FW](https://github.com/MFIRoadMap/Fortinet-Product-Notes/tree/main/Fortigate%20FW)
 * Forti EMS 
