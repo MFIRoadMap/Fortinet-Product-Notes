@@ -1,0 +1,163 @@
+CE6800-SW
+----------------------------------------
+system-view
+sysname CE6800-SW
+int range ge 1/0/0 to ge 1/0/10
+portswitch
+quit
+quit
+save
+y
+
+
+
+
+Fortigate Only Web Filter and App Control Configs
+----------------------------------------
+
+# WEB FILTER CONFİG 
+config webfilter profile
+edit webfilter
+set feature-set flow
+config ftgd-wf
+config filters
+edit 39
+set category 14
+set action block    
+next
+edit 18
+set category 18
+set action monitor
+next
+edit 20
+set category 20
+set action warning
+next
+end
+end
+
+
+config webfilter profile
+edit "webfilter"
+set options block-invalid-url
+end
+end
+
+
+config webfilter urlfilter
+edit 1
+set name webfilter
+config entries
+edit 1
+set url "*.bot.com"
+set type wildcard
+set action block
+set status enable
+next
+edit 2
+set url "*.instagram.com"
+set type wildcard
+set action block
+set status enable
+next
+end
+next
+end
+
+
+config webfilter profile
+edit webfilter
+config web
+set blocklist enable
+end
+end
+
+
+
+config webfilter content
+edit 1
+set name webfilter
+config entries
+edit adult
+set pattern-type regexp
+set status enable
+set lang western
+set score 10
+set action block
+next
+edit porn
+set pattern-type regexp
+set status enable
+set lang western
+set score 10
+set action block
+next
+end
+end
+
+
+
+config webfilter profile
+edit webfilter
+config ftgd-wf
+set options error-allow rate-server-ip
+end
+end
+
+
+
+
+
+#APPLICATION CONTROL CONFIGURATION
+config application list 
+edit AppControlList1
+config entries
+edit 1
+set category 23
+set action block
+next
+edit 2
+set category 6
+set action block
+end
+end
+
+config application list
+edit AppControlList1
+set other-application-log enable
+set control-default-network-services enable
+config default-network-services
+edit 1
+set port 80
+set services http
+set violation-action block
+next
+edit 2
+set port 53
+set services dns
+set violation-action monitor
+end
+end
+
+
+config application list 
+edit AppControlList1
+config entries
+edit 11
+set application 15832 23813 17735 29210 40934
+set action block
+next
+edit 12
+set application 39164
+set action block
+end
+end
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,169 @@
+
+Fortinet
+----------------------------------------------
+//Role ve temel ip konfigürasyonu
+config system interface
+edit port2
+set vrf 0
+set role lan
+set ip 192.168.20.1 255.255.255.0
+next
+
+edit port3
+set vrf 0
+set role lan
+end
+
+
+
+//Create Address Object Matching Subnet konfigürasyonu
+config firewall address
+edit FWAddrPort2
+set type interface-subnet
+set interface port2
+end
+
+
+
+//IPAM konfigürasyonu
+config system ipam
+set status enable
+end
+config system interface
+edit port3
+set ip-managed-by-fortiipam enable
+y
+
+end
+
+
+
+//Administrative Access konfigürasyonu
+config system interface
+edit port2
+set allowaccess ping
+next
+edit port3
+set allowaccess ping
+end
+
+config system global
+set lldp-reception disable
+set lldp-transmission disable
+end 
+
+
+//DHCP konfigürasyonu
+config system dhcp server 
+edit 2
+set dns-service specify
+set dns-server1 8.8.8.8
+set dns-server2 8.8.4.4
+set default-gateway 192.168.20.1
+set netmask 255.255.255.0
+config ip-range
+edit 1
+set start-ip 192.168.20.5
+set end-ip 192.168.20.100
+next
+edit 2
+set start-ip 192.168.20.110
+set end-ip 192.168.20.254
+end
+set interface port2
+set status enable
+
+config options
+edit 1
+set code 7 
+set type ip 
+set ip 192.168.20.100
+next 
+end
+
+end
+
+
+
+//Captive Portal konfigürasyonu
+config user local
+edit User1
+set type password
+set passwd 1234
+set status enable
+next
+end
+
+config user group 
+edit newGroup
+member User1
+end
+
+
+config user security-exempt-list
+edit MyExemptList
+config rule 
+edit 1
+set srcaddr DeviceH
+set service HTTPS DNS NTP
+end
+end
+
+config system interface 
+edit port2
+set security-mode captive-portal
+set security-groups newGroup
+set security-exempt-list MyExemptList
+end
+
+
+
+
+CE6800-1
+---------------------------------------------
+system-view
+sysname CE6800-1
+
+int ge 1/0/0 
+portswitch
+undo sh
+quit
+
+int range ge 1/0/7 to ge 1/0/8
+portswitch
+undo sh
+quit
+
+commit
+
+
+
+
+
+
+
+CE6800-2
+---------------------------------------------
+system-view
+sysname CE6800-2
+
+int ge 1/0/0 
+portswitch
+undo sh
+quit
+
+int range ge 1/0/7 to ge 1/0/8
+portswitch
+undo sh
+quit
+
+commit
+
+
+
+
+
+
+
+
+

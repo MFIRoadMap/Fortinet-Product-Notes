@@ -1,0 +1,204 @@
+Fortigate
+---------------------------------------
+config system interface 
+edit HuaLacpInter
+set vdom root
+set type aggregate
+set member port7 port8
+set role lan
+end
+
+
+config system interface
+edit VLAN10
+set vdom root
+set vlanid 10
+set ip 192.168.10.1 255.255.255.0
+set allowaccess ping
+set role lan
+set interface HuaLacpInter
+next
+
+edit VLAN20
+set vdom root
+set vlanid 20
+set ip 192.168.20.1 255.255.255.0
+set allowaccess ping
+set role lan
+set interface HuaLacpInter
+next
+
+edit VLAN30
+set vdom root
+set vlanid 30
+set ip 192.168.30.1 255.255.255.0
+set allowaccess ping
+set role lan
+set interface HuaLacpInter
+next
+end
+
+
+
+config firewall address
+edit VLAN10_Address
+set type ipmask
+set subnet 192.168.10.1/24
+next
+edit VLAN20_Address
+set type ipmask
+set subnet 192.168.20.1/24
+next
+edit VLAN30_Address
+set type ipmask
+set subnet 192.168.30.1/24
+end 
+
+
+config firewall policy
+
+edit 1
+set name VLAN10-to-VLAN20
+set srcintf VLAN10
+set dstintf VLAN20
+set action accept
+set srcaddr VLAN10_Address
+set dstaddr VLAN20_Address
+set schedule always
+set service ALL
+next
+edit 2
+set name VLAN20-to-VLAN10
+set srcintf VLAN20
+set dstintf VLAN10
+set action accept
+set srcaddr VLAN20_Address
+set dstaddr VLAN10_Address
+set schedule always
+set service ALL
+next
+
+edit 11
+set name VLAN10-to-VLAN30
+set srcintf VLAN10
+set dstintf VLAN30
+set action accept
+set srcaddr VLAN10_Address
+set dstaddr VLAN30_Address
+set schedule always
+set service ALL
+next
+edit 12
+set name VLAN30-to-VLAN10
+set srcintf VLAN30
+set dstintf VLAN10
+set action accept
+set srcaddr VLAN30_Address
+set dstaddr VLAN10_Address
+set schedule always
+set service ALL
+next
+
+edit 21
+set name VLAN20-to-VLAN30
+set srcintf VLAN20
+set dstintf VLAN30
+set action accept
+set srcaddr VLAN20_Address
+set dstaddr VLAN30_Address
+set schedule always
+set service ALL
+next
+edit 22
+set name VLAN30-to-VLAN20
+set srcintf VLAN30
+set dstintf VLAN20
+set action accept
+set srcaddr VLAN30_Address
+set dstaddr VLAN20_Address
+set schedule always
+set service ALL
+next
+end
+
+
+
+
+CE6800-1
+----------------------------------------
+system-view
+
+sysname CE6800-1
+
+vlan batch 10 20 30
+commit
+
+int ge 1/0/10
+port link-type access
+port default vlan 10
+quit
+
+int ge 1/0/11
+port link-type access
+port default vlan 20
+quit
+
+int ge 1/0/12
+port link-type access
+port default vlan 30
+quit
+
+int ge 1/0/13
+port link-type access
+port default vlan 10
+quit
+commit
+
+int eth-trunk 1
+port link-type trunk
+port trunk allow-pass vlan 2 to 4094
+mode lacp-static
+quit
+
+int ge 1/0/0
+eth-trunk 1
+quit
+int ge 1/0/1
+eth-trunk 1
+quit
+
+commit
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,24 @@
+Fortigate-1
+----------------------------------------------
+config system ha
+set mode a-p
+set priority 128
+set group-id 1
+set group-name 200F-HA
+set password 123456
+set monitor port7 port8
+set hbdev port3 50 port4 50
+end 
+
+
+Fortigate-2
+----------------------------------------------
+config system ha
+set mode a-p
+set priority 100
+set group-id 1
+set group-name 200F-HA
+set password 123456
+set monitor port7 port8
+set hbdev port3 50 port4 50
+end 

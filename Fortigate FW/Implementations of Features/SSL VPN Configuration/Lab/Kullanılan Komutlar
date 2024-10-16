@@ -1,0 +1,212 @@
+CE6800-SW
+-------------------------------------------
+
+
+
+
+
+
+fortigate-1
+-------------------------------------------
+config system global
+set hostname Fortigate-1
+end
+
+config system interface 
+#SSL BAĞLANTISI YAPILACAK DIŞ BACAK IP ADRESİ
+edit port8
+set vdom root
+set ip 5.5.5.5 255.255.255.0
+set allowaccess ping
+set role wan
+next
+
+#HEDEFE YÖNLENDİRİLMEK ÜZEER GEÇİŞ İÇİN KULLANILACKA IP ADRESİ
+edit port2
+set vdom root
+set ip 10.10.50.1 255.255.255.0
+set allowaccess ping
+set role lan
+end
+
+
+config user local
+edit ssluser1
+set status enable
+set type password
+set passwd SSlUser1Pass*
+end
+config user group
+edit SSLGroup1
+set group-type firewall
+set member ssluser1
+end
+
+
+config firewall address
+edit SSLVPNAddr-1
+set type ipmask
+set subnet 10.10.200.0/24
+next
+edit WinServ-1
+set type ipmask
+set subnet 10.10.10.10/32
+end 
+
+
+
+config vpn ssl web portal
+edit full-access
+set tunnel-mode enable
+set split-tunneling enable
+set split-tunneling-routing-negate disable 
+set split-tunneling-routing-address WinServ-1
+set ip-pools SSLVPNAddr-1
+end
+
+config vpn ssl web portal
+edit full-access
+set auto-connect enable
+set keep-alive enable
+set save-password  enable 
+end
+
+
+config vpn ssl web portal
+edit full-access
+set web-mode enable
+config bookmark-group
+edit SSL-VPN-Prtl
+config bookmarks
+edit Server_Web_GUI
+set apptype web
+set url 10.10.10.10
+set description Server
+end
+end
+end
+
+
+config vpn ssl settings
+set status enable
+set source-interface port8
+set port 60443
+set servercert Fortinet_Factory
+set default-portal full-access
+set dns-server1 8.8.8.8
+set dns-server2 8.8.4.4
+
+config authentication-rule
+edit 1
+set groups SSLGroup1
+set portal full-access       
+end
+end
+
+
+
+config router static
+edit 1
+set dst 10.10.10.1/24
+set gateway 10.10.50.2
+set device port2
+end
+
+
+config firewall policy
+edit 10
+set name Win_Srv_to_MFI_SSL
+set srcintf ssl.root
+set dstintf port2
+set srcaddr SSLVPNAddr-1
+set groups SSLGroup1
+set dstaddr WinServ-1
+set action accept
+set schedule always
+set service ALL
+next
+edit 11
+set name MFI_SSL_to_Win_Srv
+set srcintf port2
+set dstintf ssl.root
+set srcaddr WinServ-1
+set dstaddr SSLVPNAddr-1
+set action accept
+set schedule always
+set service ALL
+end
+
+
+
+
+fortigate-2
+-------------------------------------------
+config system global
+set hostname Fortigate-2
+end
+
+
+config system interface 
+edit port8
+set vdom root
+set ip 10.10.10.1 255.255.255.0
+set allowaccess ping
+set role lan
+next
+edit port2
+set vdom root
+set ip 10.10.50.2 255.255.255.0
+set allowaccess ping
+set role lan
+end
+
+
+
+config firewall address
+edit SSL_VPN_Addr_1
+set type ipmask
+set subnet 10.10.50.0/24
+next
+edit Win_Srv_IP_POOL
+set type ipmask
+set subnet 10.10.10.0/24
+end 
+
+config router static
+edit 1
+set dst 10.10.200.0/24
+set gateway 10.10.50.1
+set device port2
+end
+
+
+config firewall policy
+edit 10
+set name Win_Srv_to_MFI_SSL
+set srcintf port8
+set dstintf port2
+set srcaddr Win_Srv_IP_POOL
+set dstaddr SSL_VPN_Addr_1
+set action accept
+set schedule always
+set service ALL
+next
+edit 11
+set name MFI_SSL_to_Win_Srv
+set srcintf port2
+set dstintf port8
+set srcaddr SSL_VPN_Addr_1
+set dstaddr Win_Srv_IP_POOL
+set action accept
+set schedule always
+set service ALL
+end
+
+
+
+
+
+
+
+
+

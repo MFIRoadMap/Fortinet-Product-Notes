@@ -1,0 +1,213 @@
+Fortigate1
+-------------------------------------------
+config system interface 
+edit port2
+set mode static 
+set ip 10.10.20.1 255.255.255.0
+set allowaccess ping
+next 
+edit port4
+set mode static 
+set ip 10.10.10.1 255.255.255.0
+set allowaccess ping
+end
+
+config router static
+edit 1
+set dst 10.10.40.0/24
+set gateway 10.10.20.2
+set device port2
+end
+
+config firewall address
+edit VPC1_Addr
+set type ipmask
+set subnet 10.10.10.10/32
+next
+edit VPC3_Addr
+set type ipmask
+set subnet 10.10.40.10/32
+end 
+
+config firewall policy
+edit 10
+set name VPC3_to_VPC1
+set srcintf port2
+set dstintf port4 
+set srcaddr VPC3_Addr
+set dstaddr VPC1_Addr
+set action accept
+set schedule always
+set service ALL
+end
+
+
+
+
+
+
+Fortigate2
+------------------------------------------
+config system interface 
+edit port2
+set mode static 
+set ip 10.10.20.2 255.255.255.0
+set allowaccess ping
+next 
+edit port3
+set mode static 
+set ip 10.10.30.2 255.255.255.0
+set allowaccess ping
+next
+edit port4
+set mode static 
+set ip 10.10.40.1 255.255.255.0
+set allowaccess ping
+end
+
+config router static
+edit 1
+set dst 10.10.10.0/24
+set gateway 10.10.20.1
+set device port2
+next
+edit 2
+set dst 10.10.100.0/24
+set gateway 10.10.30.3
+set device port3
+end
+
+config firewall address
+edit VPC1_Addr
+set type ipmask
+set subnet 10.10.10.10/32
+next
+edit VPC3_Addr
+set type ipmask
+set subnet 10.10.40.10/32
+next
+edit VPC2_Addr
+set type ipmask
+set subnet 10.10.100.10/32
+end 
+
+
+config firewall policy
+edit 10
+set name VPC3_to_VPC1
+set srcintf port4
+set dstintf port2 
+set srcaddr VPC3_Addr
+set dstaddr VPC1_Addr
+set action accept
+set schedule always
+set service ALL
+next
+edit 11
+set name VPC3_to_VPC2
+set srcintf port4
+set dstintf port3
+set srcaddr VPC3_Addr
+set dstaddr VPC2_Addr
+set action accept
+set schedule always
+set service ALL
+end
+
+
+
+
+
+
+Fortigate3
+------------------------------------------
+config system interface 
+edit port3
+set mode static 
+set ip 10.10.30.3 255.255.255.0
+set allowaccess ping
+next
+edit port4
+set mode static 
+set ip 10.10.10.1 255.255.255.0
+set allowaccess ping
+end
+
+config router static
+edit 1
+set dst 10.10.40.0/24
+set gateway 10.10.30.2
+set device port3
+end
+
+config firewall vip
+edit ToPort4VIP
+set extip 10.10.100.10
+set extintf port3
+set mappedip 10.10.10.10
+
+set src-filter 10.10.40.10
+set service ALL
+
+#set portforward enable
+#set protocol icmp
+#set extport 9999
+#set mappedport 8080
+#set portmapping-type 1-to-1
+end
+
+config firewall address
+edit VPC3_Addr
+set type ipmask
+set subnet 10.10.40.10/32
+end 
+
+
+config firewall policy
+edit 10
+set name VPC3_to_VPC2
+set srcintf port3
+set dstintf port4 
+set srcaddr VPC3_Addr
+set dstaddr ToPort4VIP
+set action accept
+set schedule always
+set service ALL
+end
+
+
+
+
+
+
+
+
+VPC1 : ip 10.10.10.10 255.255.255.0 10.10.10.1
+VPC3 : ip 10.10.40.10 255.255.255.0 10.10.40.1
+VPC2 : ip 10.10.10.10 255.255.255.0 10.10.10.1
+
+
+
+
+
+cihaz sıfırlama ve ilk kurulum
+---------------------------------
+admin
+
+eve
+eve
+
+execute factoryreset
+y
+
+admin
+
+eve
+eve
+
+config system interface
+edit port1
+set allowaccess https http ssh ping
+end
+
+

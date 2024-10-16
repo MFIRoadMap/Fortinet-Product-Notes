@@ -1,0 +1,294 @@
+Fortigate-1-IOT
+----------------------------------
+config system global
+set hostname Fortigate-1-IOT
+end
+
+config system interface 
+edit IOT-1
+set vdom root
+set interface port4
+set type vlan
+set vlanid 10
+set mode static 
+set ip 10.10.1.1 255.255.255.0
+set allowaccess ping
+next
+edit FW_MGMT
+set vdom root
+set interface port4
+set type vlan
+set vlanid 220
+set mode static 
+set ip 10.10.220.1 255.255.255.0
+set allowaccess ping
+end
+
+
+
+
+
+
+Fortigate-2-Main
+----------------------------------
+config system global
+set hostname Fortigate-2-Main
+end
+
+config system interface 
+edit MainVLAN1
+set vdom root
+set interface port4
+set type vlan
+set vlanid 20
+set mode static 
+set ip 10.10.2.1 255.255.255.0
+set allowaccess ping
+next
+edit MainVLAN2
+set vdom root
+set interface port4
+set type vlan
+set vlanid 30
+set mode static 
+set ip 10.10.3.1 255.255.255.0
+set allowaccess ping
+next
+edit FW_MGMT
+set vdom root
+set interface port4
+set type vslan
+set vlanid 220
+set mode static 
+set ip 10.10.220.2 255.255.255.0
+set allowaccess ping
+end
+
+
+config firewall address
+edit MainVLAN1_Addr
+set type ipmask
+set subnet 10.10.2.1/24
+next
+edit ServerVLAN2_Addr
+set type ipmask
+set subnet 10.10.5.1/24
+end 
+
+
+config firewall policy
+edit 10
+set name MVLAN1_to_SVLAN2
+set srcintf MainVLAN1 
+set dstintf FW_MGMT 
+set srcaddr MainVLAN1_Addr
+set dstaddr ServerVLAN2_Addr
+set action accept
+set schedule always
+set service ALL
+next
+edit 11
+set name SVLAN2_to_MVLAN1
+set srcintf FW_MGMT
+set dstintf MainVLAN1
+set srcaddr ServerVLAN2_Addr
+set dstaddr MainVLAN1_Addr
+set action accept
+set schedule always
+set service ALL
+end
+
+
+config router static
+edit 1
+set dst 10.10.5.1/24
+set gateway 10.10.220.3
+set device FW_MGMT 
+end
+
+
+
+
+
+Fortigate-3-Server
+----------------------------------
+config system global
+set hostname Fortigate-3-Server
+end
+
+config system interface 
+edit ServerVLAN1
+set vdom root
+set interface port4
+set type vlan
+set vlanid 40
+set mode static 
+set ip 10.10.4.1 255.255.255.0
+set allowaccess ping
+next
+edit ServerVLAN2
+set vdom root
+set interface port4
+set type vlan
+set vlanid 50
+set mode static 
+set ip 10.10.5.1 255.255.255.0
+set allowaccess ping
+next
+edit FW_MGMT
+set vdom root
+set interface port4
+set type vlan
+set vlanid 220
+set mode static 
+set ip 10.10.220.3 255.255.255.0
+set allowaccess ping
+end
+
+
+
+config firewall address
+edit MainVLAN1_Addr
+set type ipmask
+set subnet 10.10.2.1/24
+next
+edit ServerVLAN2_Addr
+set type ipmask
+set subnet 10.10.5.1/24
+end 
+
+
+config firewall policy
+edit 10
+set name SVLAN2_to_MVLAN1
+set srcintf ServerVLAN2
+set dstintf FW_MGMT
+set srcaddr ServerVLAN2_Addr
+set dstaddr MainVLAN1_Addr
+set action accept
+set schedule always
+set service ALL
+next
+edit 11
+set name MVLAN1_to_SVLAN2
+set srcintf FW_MGMT 
+set dstintf ServerVLAN2 
+set srcaddr MainVLAN1_Addr
+set dstaddr ServerVLAN2_Addr
+set action accept
+set schedule always
+set service ALL
+end
+
+
+config router static
+edit 1
+set dst 10.10.2.1/24
+set gateway 10.10.220.2
+set device FW_MGMT 
+end
+
+
+
+
+
+
+
+
+CE6800-BB
+----------------------------------
+sys
+sysname CE6800-BB
+commit 
+vlan 10 
+description IOT-1 
+vlan 20
+description MainVLAN1
+vlan 30 
+description MainVLAN2 
+vlan 40 
+description ServerVLAN1 
+vlan 50 
+description ServerVLAN2
+vlan 220
+description FW_MGMT
+quit
+
+int g 1/0/10
+port link-type trunk
+port trunk allow-pass vlan 10 220
+quit
+int g 1/0/11
+port link-type trunk
+port trunk allow-pass vlan 20 30 220
+quit
+int g 1/0/12
+port link-type trunk
+port trunk allow-pass vlan 40 50 220
+quit
+
+int g 1/0/1
+port link-type trunk
+port trunk allow-pass vlan 10 20 30 40 50
+quit
+commit
+
+
+
+Edge-1
+----------------------------------
+sys
+sysname Edge-1
+commit 
+
+vlan 10 
+description IOT-1 
+vlan 20
+description MainVLAN1
+vlan 30 
+description MainVLAN2 
+vlan 40 
+description ServerVLAN1 
+vlan 50 
+description ServerVLAN2
+quit
+
+int g 1/0/0
+port link-type trunk
+port trunk allow-pass vlan 10 20 30 40 50
+quit
+
+int g 1/0/10
+port link-type access
+port default vlan 20
+quit
+int g 1/0/11
+port link-type access
+port default vlan 30
+quit
+int g 1/0/12
+port link-type access
+port default vlan 10
+quit
+int g 1/0/13
+port link-type access
+port default vlan 50
+quit
+int g 1/0/14
+port link-type access
+port default vlan 40
+quit
+commit
+
+
+
+
+
+
+
+
+IOT-1 VPC-1 -> ip 10.10.1.10 255.255.255.0 10.10.1.1
+MainVLAN1 VPC -> ip 10.10.2.10 255.255.255.0 10.10.2.1
+MainVLAN2 VPC -> ip 10.10.3.10 255.255.255.0 10.10.3.1
+ServerVLAN1 VPC -> ip 10.10.4.10 255.255.255.0 10.10.4.1
+ServerVLAN2 VPC -> ip 10.10.5.10 255.255.255.0 10.10.5.1

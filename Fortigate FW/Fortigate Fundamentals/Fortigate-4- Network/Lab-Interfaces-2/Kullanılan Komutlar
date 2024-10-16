@@ -1,0 +1,190 @@
+Fortigate
+---------------------------------------------------------
+//LACP konfigürasyonu
+config system interface 
+edit LACPInterface
+set vdom root
+set type aggregate
+set member port3 port4
+set role lan
+end
+
+//VLAN konfigürasyonu
+config system interface 
+edit VLAN100
+set vdom root
+set interface port2
+set type vlan
+set vlanid 100
+set mode static 
+set ip 192.168.100.1 255.255.255.0
+set allowaccess ping
+next
+edit VLAN200
+set vdom root
+set interface port2
+set type vlan
+set vlanid 200
+set mode static 
+set ip 192.168.200.1 255.255.255.0
+set allowaccess ping
+end
+
+
+//Loopback interface konfiügrasyonu
+config system interface 
+edit LoopbackInter
+set vdom root
+set ip 192.168.50.10 255.255.255.255
+set type loopback
+end
+//Burada arayüzlerden Loopback interface'e erişebilmek  için Firewall Policy yazmayı unutma
+
+
+
+//Software Swtch konfigürasyonu
+config system switch-interface
+edit SofSwitInter
+set vdom root
+set type switch
+set member port5 port6
+end
+
+
+
+//SPAN port konfigürasyonu
+config system switch-interface
+edit SofSwitInter
+set vdom root
+set member port5 port6
+set span enable
+set span-source-port port5
+set span-dest-port port6
+set span-direction both
+end
+
+
+//Redundancy konfigürasyonu
+config system interface 
+edit RedundancyInter
+set vdom root
+set type redundant
+set member port7 port8
+set ip 192.168.60.1 255.255.255.0
+set allowaccess ping
+set role lan
+end
+
+
+//Zone konfigürasyonu
+config system zone
+edit Zone-2
+set interface RedundancyInter port9 port10 
+set intrazone deny
+end
+
+
+//
+config system virtual-wire-pair
+edit vwp1
+set member port11 port12
+set wildcard-vlan disable
+end
+
+config firewall policy
+edit 1
+set name "VWP-Policy"
+set srcintf port11 port12
+set dstintf port11 port12
+set srcaddr all
+set dstaddr all
+set action accept
+set schedule always
+set service ALL
+next
+end
+
+
+
+
+
+
+CE6800-1
+---------------------------------------------
+system-view
+sysname CE6800-1
+
+vlan batch 100 200
+
+int ge 1/0/0
+portswitch
+port link-type trunk 
+port trunk allow-pass vlan 100 200
+undo sh
+quit
+
+int range ge 1/0/7 to ge 1/0/8
+portswitch
+port link-type access
+undo sh
+quit
+
+int ge 1/0/7
+port default vlan 100
+quit
+int ge 1/0/8
+port default vlan 200
+quit
+commit
+
+
+
+
+CE6800-2
+---------------------------------------------
+system-view
+sysname CE6800-2
+
+int range ge 1/0/0 to ge 1/0/1
+portswitch
+undo sh
+quit
+
+int range ge 1/0/7 to ge 1/0/8
+portswitch
+undo sh
+quit
+
+int eth-trunk 2
+trunkport ge 1/0/0 to 1/0/1
+mode lacp-static
+quit
+commit
+
+
+
+
+
+
+
+CE6800-3
+---------------------------------------------
+system-view
+sysname CE6800-3
+
+int range ge 1/0/0 to ge 1/0/1
+portswitch
+undo sh
+quit
+
+int ge 1/0/7 
+portswitch
+undo sh
+quit
+commit
+
+
+
+
+
+
