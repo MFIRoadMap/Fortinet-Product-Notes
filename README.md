@@ -8,6 +8,5 @@
 * Forti Analyzer
 
 
-
 # Kaynaklar
 *  [FortiGate](https://docs.fortinet.com/)
